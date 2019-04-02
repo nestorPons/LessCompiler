@@ -34,7 +34,7 @@
  * The `lessc_formatter` takes a CSS tree, and dumps it to a formatted string,
  * handling things like indentation.
  */
-class lessc {
+class Lessc {
 	static public $VERSION = "v0.5.0";
 	static public $TRUE = array("keyword", "true");
 	static public $FALSE = array("keyword", "false");
@@ -42,7 +42,8 @@ class lessc {
 	protected $registeredVars = array();
 	protected $preserveComments = false;
 	public $vPrefix = '@'; // prefix of abstract properties
-	public $mPrefix = '$'; // prefix of abstract blocks
+	public $phpPrefix = '$'; // prefix for php Array 
+	public $mPrefix = 'ß'; // prefix of abstract blocks
 	public $parentSelector = '&';
 	public $importDisabled = false;
 	public $importDir = '';
@@ -1575,7 +1576,7 @@ class lessc {
 		setlocale(LC_NUMERIC, "C");
 		$this->parser = $this->makeParser($name);
 		if (!empty($this->arrPHP)){
-			$string = $this->varPhp($string); //Format works whith ^ symbol
+			$string = $this->varPhp($string); //Format works whith phpvar symbol
 		}
 		$root = $this->parser->parse($string);
 		$this->env = null;
@@ -1590,6 +1591,7 @@ class lessc {
 		$this->formatter->block($this->scope);
 		$out = ob_get_clean();
 		setlocale(LC_NUMERIC, $locale);
+
 		return $out;
 	} 
 	public function compileFile($fname, $outFname = null) {
@@ -1605,7 +1607,7 @@ class lessc {
 		$this->importDir = $oldImport;
 		if ($outFname !== null) {
 			$file =  file_put_contents($outFname, $out);
-			chmod($outFname , 0777);
+			@chmod($outFname , 0777);
 			return $file ; 
 		}
 		return $out;
@@ -1680,28 +1682,11 @@ class lessc {
 	}
 	//include in file less php variables whit symbol $ before work;
 	public function varPhp($str){ 
-	
-		$posEnd = 0;
-		$strOut = $str;
-		
-		for($i=0;$i<= strlen($str);$i++){
-			if($posIni = strpos($str,'$',$i)){
-				$posEndS = strpos($str,';',$posIni);
-				$posEndC=  strpos($str,',',$posIni)??null;
-				$posEndC=  strpos($str,',',$posIni)??null;
-				$posEnd = $posEndS<=$posEndC?$posEndS:$posEndC;				
-		
-				$var = substr($str,$posIni,$posEnd- $posIni);
-				$varMod = trim($var,'$'); 
-			
-				$strOut = str_replace($var,$this->arrPHP[$varMod],$strOut);
-				
-				$i = $posEnd;
-			}else{
-				break;
-			}			
+
+		foreach($this->arrPHP as $key => $value){
+			$str = str_replace($this->phpPrefix . $key, $value, $str);
 		}
-		return $strOut;
+		return $str;
 
 	}
 	// parse and compile buffer
