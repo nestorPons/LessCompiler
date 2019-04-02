@@ -1,4 +1,4 @@
-<?php namespace models;
+<?php
 /**
  * lessphp v0.5.0
  * http://leafo.net/lessphp
@@ -34,8 +34,7 @@
  * The `lessc_formatter` takes a CSS tree, and dumps it to a formatted string,
  * handling things like indentation.
  */
-
-class Lessc {
+class lessc {
 	static public $VERSION = "v0.5.0";
 	static public $TRUE = array("keyword", "true");
 	static public $FALSE = array("keyword", "false");
@@ -149,7 +148,7 @@ class Lessc {
 	 * Compiling the block involves pushing a fresh environment on the stack,
 	 * and iterating through the props, compiling each one.
 	 *
-	 * See Lessc::compileProp()
+	 * See lessc::compileProp()
 	 *
 	 */
 	protected function compileBlock($block) {
@@ -1042,7 +1041,8 @@ class Lessc {
 	protected function lib_contrast($args) {
 	    $darkColor  = array('color', 0, 0, 0);
 	    $lightColor = array('color', 255, 255, 255);
-	    $threshold  = 0.43;
+		$threshold  = 0.43;
+
 	    if ( $args[0] == 'list' ) {
 	        $inputColor = ( isset($args[2][0]) ) ? $this->assertColor($args[2][0])  : $lightColor;
 	        $darkColor  = ( isset($args[2][1]) ) ? $this->assertColor($args[2][1])  : $darkColor;
@@ -1068,9 +1068,8 @@ class Lessc {
 	    return $darkColor;
 	}
 	protected function lib_luma($color) {
-
 	    $color = $this->coerceColor($color);
-	    return (0.2126 * $color[0] / 255) + (0.7152 * $color[1] / 255) + (0.0722 * $color[2] / 255);
+	    return (0.2126 * $color[1] / 255) + (0.7152 * $color[2] / 255) + (0.0722 * $color[3] / 255);
 	}
 	public function assertColor($value, $error = "expected color value") {
 		$color = $this->coerceColor($value);
@@ -1679,21 +1678,21 @@ class Lessc {
 			return $in;
 		}
 	}
-	//include variables php in file less whit symbol ^ before work;
+	//include in file less php variables whit symbol $ before work;
 	public function varPhp($str){ 
 	
 		$posEnd = 0;
 		$strOut = $str;
 		
 		for($i=0;$i<= strlen($str);$i++){
-			if($posIni = strpos($str,'^',$i)){
+			if($posIni = strpos($str,'$',$i)){
 				$posEndS = strpos($str,';',$posIni);
 				$posEndC=  strpos($str,',',$posIni)??null;
 				$posEndC=  strpos($str,',',$posIni)??null;
 				$posEnd = $posEndS<=$posEndC?$posEndS:$posEndC;				
 		
 				$var = substr($str,$posIni,$posEnd- $posIni);
-				$varMod = trim($var,'^'); 
+				$varMod = trim($var,'$'); 
 			
 				$strOut = str_replace($var,$this->arrPHP[$varMod],$strOut);
 				
@@ -1988,7 +1987,6 @@ class lessc_parser {
 	// caches preg escaped literals
 	static protected $literalCache = array();
 	public function __construct($lessc, $sourceName = null) {
-
 		$this->eatWhiteDefault = true;
 		// reference to less needed for vPrefix, mPrefix, and parentSelector
 		$this->lessc = $lessc;
@@ -1998,9 +1996,9 @@ class lessc_parser {
 			self::$operatorString =
 				'('.implode('|', array_map(array('lessc', 'preg_quote'),
 					array_keys(self::$precedence))).')';
-			$commentSingle = Lessc::preg_quote(self::$commentSingle);
-			$commentMultiLeft = Lessc::preg_quote(self::$commentMultiLeft);
-			$commentMultiRight = Lessc::preg_quote(self::$commentMultiRight);
+			$commentSingle = lessc::preg_quote(self::$commentSingle);
+			$commentMultiLeft = lessc::preg_quote(self::$commentMultiLeft);
+			$commentMultiRight = lessc::preg_quote(self::$commentMultiRight);
 			self::$commentMulti = $commentMultiLeft.'.*?'.$commentMultiRight;
 			self::$whitePattern = '/'.$commentSingle.'[^\n]*\s*|('.self::$commentMulti.')\s*|\s+/Ais';
 		}
@@ -2040,7 +2038,7 @@ class lessc_parser {
 	 * functions represent discrete grammatical rules for the language, and
 	 * they are able to capture the text that represents those rules.
 	 *
-	 * Consider the function Lessc::keyword(). (all parse functions are
+	 * Consider the function lessc::keyword(). (all parse functions are
 	 * structured the same)
 	 *
 	 * The function takes a single reference argument. When calling the
@@ -2049,7 +2047,7 @@ class lessc_parser {
 	 * argument, advance the position in the buffer, and return true. If it
 	 * fails then it won't advance the buffer and it will return false.
 	 *
-	 * All of these parse functions are powered by Lessc::match(), which behaves
+	 * All of these parse functions are powered by lessc::match(), which behaves
 	 * the same way, but takes a literal regular expression. Sometimes it is
 	 * more convenient to use match instead of creating a new function.
 	 *
@@ -2058,7 +2056,7 @@ class lessc_parser {
 	 *
 	 * But, if some of the rules in the chain succeed before one fails, then
 	 * the buffer position will be left at an invalid state. In order to
-	 * avoid this, Lessc::seek() is used to remember and set buffer positions.
+	 * avoid this, lessc::seek() is used to remember and set buffer positions.
 	 *
 	 * Before parsing a chain, use $s = $this->seek() to remember the current
 	 * position into $s. Then if a chain fails, use $this->seek($s) to
@@ -2218,7 +2216,7 @@ class lessc_parser {
 			$values[] = $exp;
 		}
 		if (count($values) == 0) return false;
-		$exps = Lessc::compressList($values, ' ');
+		$exps = lessc::compressList($values, ' ');
 		return true;
 	}
 	/**
@@ -2293,7 +2291,7 @@ class lessc_parser {
 		if ($s) $this->seek($s);
 		if ($keyName !== null) unset($this->env->currentProperty);
 		if (count($values) == 0) return false;
-		$value = Lessc::compressList($values, ', ');
+		$value = lessc::compressList($values, ', ');
 		return true;
 	}
 	protected function parenValue(&$out) {
@@ -2489,7 +2487,7 @@ class lessc_parser {
 		$content = array();
 		// look for either ending delim , escape, or string interpolation
 		$patt = '([^\n]*?)(@\{|\\\\|' .
-			Lessc::preg_quote($delim).')';
+			lessc::preg_quote($delim).')';
 		$oldWhite = $this->eatWhiteDefault;
 		$this->eatWhiteDefault = false;
 		while ($this->match($patt, $m, false)) {
@@ -2919,7 +2917,7 @@ class lessc_parser {
 			}
 		}
 		if (!isset(self::$literalCache[$what])) {
-			self::$literalCache[$what] = Lessc::preg_quote($what);
+			self::$literalCache[$what] = lessc::preg_quote($what);
 		}
 		return $this->match(self::$literalCache[$what], $m, $eatWhitespace);
 	}
@@ -2952,7 +2950,7 @@ class lessc_parser {
 		} else {
 			$validChars = $allowNewline ? "." : "[^\n]";
 		}
-		if (!$this->match('('.$validChars.'*?)'.Lessc::preg_quote($what), $m, !$until)) return false;
+		if (!$this->match('('.$validChars.'*?)'.lessc::preg_quote($what), $m, !$until)) return false;
 		if ($until) $this->count -= strlen($what); // give back $what
 		$out = $m[1];
 		return true;
